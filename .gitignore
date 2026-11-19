@@ -1,0 +1,10 @@
+# Środowisko wirtualne i ustawienia PyCharm
+.venv/
+.idea/
+
+# Pliki tworzone automatycznie przez Pythona
+__pycache__/
+*.pyc
+
+# Pliki CSV generowane przez program
+wyniki/
