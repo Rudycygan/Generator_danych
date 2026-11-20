@@ -1,27 +1,32 @@
-#funkcja odpowiedzialna za weryfikacje peselu
+from datetime import date
+
+CENTURY_BY_MONTH_OFFSET = {
+    80: 1800,
+    0: 1900,
+    20: 2000,
+    40: 2100,
+    60: 2200,
+}
+
+
+def decode_birth_date(date_part: str) -> date | None:
+    year_in_century = int(date_part[0:2])
+    encoded_month = int(date_part[2:4])
+    day = int(date_part[4:6])
+
+    offset = encoded_month // 20 * 20
+    century = CENTURY_BY_MONTH_OFFSET[offset]
+    month = encoded_month - offset
+
+    try:
+        return date(century + year_in_century, month, day)
+    except ValueError:
+        return None
+
 def valid_pesel(pesel):
 
-    # czy ma tylko cyfry
     if not pesel.isdigit():
         return False
 
-    #weryfikacja, czy pesel ma 11 cyfr
-    if len(pesel) != 11:
-        return False
-
-    #przypisanie odpowiedniego znaczenia cyfr do miejsc w peselu
-    rok = int(pesel[0:2])
-    miesiac = int(pesel[2:4])
-    dzien = int(pesel[4:6])
-    suma_kontrolna = int(pesel[10])
-
-    #sprawdzam miesiąc
-    if miesiac < 1 or miesiac > 12:
-        return False
-
-    #spr dzień
-    dni_w_miesiacu = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-    if rok % 4 == 0 and (rok % 100 != 0 or rok % 400 == 0):
-        dni_w_miesiacu[2] = 29  # Rok przestępny
-    if dzien < 1 or dzien > dni_w_miesiacu[miesiac]:
+    if decode_birth_date(pesel[0:6]) is None:
         return False
