@@ -1,6 +1,7 @@
+import random
 from datetime import date
 
-#przypisanie na stałe liczby do danych stuleci z roku urodzenia. zależnie od roku urodzenia do miesiąca doda się przypisana liczba
+# przypisanie na stałe liczby do danych stuleci z roku urodzenia. przy generowaniu zależnie od roku urodzenia do miesiąca doda się przypisana liczba
 CENTURY_BY_MONTH_OFFSET = {
     80: 1800,
     0: 1900,
@@ -10,6 +11,17 @@ CENTURY_BY_MONTH_OFFSET = {
 }
 # wagi liczb w peselu, którymi później mnożymy cyfry w otrzymanym peselu w celu weryfikakcji
 PESEL_WEIGHTS = (1, 3, 7, 9, 1, 3, 7, 9, 1, 3)
+
+# liczba dodawana do miesiąca (używa go generator).
+OFFSET_BY_CENTURY = {
+    century: offset for offset, century in CENTURY_BY_MONTH_OFFSET.items()
+}
+
+# Dziesiąta cyfra numeru pesel: parzysta dla kobiet, nieparzysta dla mężczyzn.
+SEX_DIGITS = {
+    "K": (0, 2, 4, 6, 8),
+    "M": (1, 3, 5, 7, 9),
+}
 
 
 def decode_birth_date(date_part: str) -> date | None:
@@ -56,3 +68,28 @@ def is_valid_pesel(pesel: str) -> bool:
     if expected != actual:
         return False
     return True
+
+
+def generate_pesel(birth_date: date, sex: str) -> str:
+    """Tworzy losowy, poprawny numer PESEL dla podanej daty urodzenia i płci
+    Płeć podaje się jako "K" (kobieta) albo "M" (mężczyzna)
+    Rzuca ValueError, gdy płeć jest nieznana albo rok urodzenia
+    wypada poza zakres obsługiwany przez PESEL (1800-2299)
+    """
+    if sex not in SEX_DIGITS:
+        raise ValueError(f"Nieznana płeć: {sex!r}, oczekiwano 'K' lub 'M'")
+
+    century = birth_date.year // 100 * 100
+    if century not in OFFSET_BY_CENTURY:
+        raise ValueError(f"Rok {birth_date.year} poza zakresem 1800-2299")
+
+    year_in_century = birth_date.year % 100
+    encoded_month = birth_date.month + OFFSET_BY_CENTURY[century]
+    serial = random.randint(0, 999)
+    sex_digit = random.choice(SEX_DIGITS[sex])
+
+    first_ten = (
+        f"{year_in_century:02d}{encoded_month:02d}{birth_date.day:02d}"
+        f"{serial:03d}{sex_digit}"
+    )
+    return first_ten + str(calculate_check_digit(first_ten))
