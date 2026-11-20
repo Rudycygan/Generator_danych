@@ -30,3 +30,4 @@ def valid_pesel(pesel):
 
     if decode_birth_date(pesel[0:6]) is None:
         return False
+
