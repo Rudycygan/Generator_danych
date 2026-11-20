@@ -13,6 +13,7 @@ PESEL_WEIGHTS = (1, 3, 7, 9, 1, 3, 7, 9, 1, 3)
 
 
 def decode_birth_date(date_part: str) -> date | None:
+    """odczytuje datę z numeru pesel i ją zwraca. W przypadku nie istniejącej daty zwraca None"""
     year_in_century = int(date_part[0:2])
     encoded_month = int(date_part[2:4])
     day = int(date_part[4:6])
@@ -26,9 +27,9 @@ def decode_birth_date(date_part: str) -> date | None:
     except ValueError:
         return None
 
-#funkcja sprawdzająca ostatnią kontrolną liczbę w peselu
-def calculate_check_digit(first_ten: str) -> int:
 
+def calculate_check_digit(first_ten: str) -> int:
+    """Oblicza cyfrę kontrolną. Robi to poprzez przemnożenie 10 pierwszych cyfr w numerze pesel, przez wagi do nich przypisane"""
     total = sum(
         int(digit) * weight
         for digit, weight in zip(first_ten, PESEL_WEIGHTS, strict=True)
@@ -36,9 +37,13 @@ def calculate_check_digit(first_ten: str) -> int:
     return (10 - total % 10) % 10
 
 
-def valid_pesel(pesel):
+def is_valid_pesel(pesel: str) -> bool:
+    """waliduje podany numer pesel. Sprawdza przesłany format, długość numeru, datę urodzenia oraz zgodność cyfry kontrolnej"""
+    # sprawdzenie, czy pesel w ogóle jest tekstem
+    if not isinstance(pesel, str):
+        return False
     #sprawdzenie, czy pesel to same cyfry
-    if not pesel.isdigit() and  not pesel.isascii():
+    if not pesel.isdigit() or not pesel.isascii():
         return False
     #sprawdzenie, czy pesel ma 11 znaków
     if len(pesel) != 11:
@@ -46,5 +51,8 @@ def valid_pesel(pesel):
     #sprawdzenie, czy z pierwszych 6 cyfr wychodzi data urodzenia
     if decode_birth_date(pesel[0:6]) is None:
         return False
-
-print(decode_birth_date("013016"))
+    expected = calculate_check_digit(pesel[:10])
+    actual = int(pesel[-1])
+    if expected != actual:
+        return False
+    return True
