@@ -1,3 +1,4 @@
+"""Zapis i odczyt plików CSV z osobami; zapis wielu plików naraz w wątkach"""
 import csv
 import queue
 import threading
@@ -13,6 +14,7 @@ OUTPUT_DIR = Path("wyniki")
 
 @retry(attempts=3, exceptions=(OSError,), delay=0.1)
 def write_csv(path: Path, rows: list[dict[str, str]]) -> None:
+    """Zapisuje wiersze do pliku CSV z nagłówkiem; przy błędzie systemu plików ponawia"""
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="", encoding="utf-8") as file:
         writer = csv.DictWriter(file, fieldnames=Person.FIELDS)
@@ -21,6 +23,7 @@ def write_csv(path: Path, rows: list[dict[str, str]]) -> None:
 
 
 def read_csv(path: Path) -> list[dict[str, str]]:
+    """Wczytuje plik CSV i zwraca listę wierszy jako słowników (klucze z nagłówka)"""
     with path.open(newline="", encoding="utf-8") as file:
         return list(csv.DictReader(file))
 
@@ -30,6 +33,7 @@ def write_batches_parallel(
     output_dir: Path = OUTPUT_DIR,
     workers: int = 4,
 ) -> list[Path]:
+    """Zapisuje każdą paczkę wierszy do osobnego pliku CSV, używając kilku wątków."""
     if workers < 1:
         raise ValueError("workers musi wynosić co najmniej 1")
 
@@ -39,6 +43,7 @@ def write_batches_parallel(
     errors: list[str] = []
 
     def worker() -> None:
+        """Konsument: zapisuje paczki z kolejki, aż dostanie None"""
         while True:
             job = jobs.get()
             if job is None:  # sygnał końca pracy
@@ -66,6 +71,7 @@ def write_batches_parallel(
             jobs.put((index, batch))
     finally:
         # Nawet gdy tworzenie paczek rzuci wyjątek, wątki muszą dostać sygnał
+        # końca - inaczej czekałyby na kolejkę w nieskończoność.
         for _ in threads:
             jobs.put(None)
         for thread in threads:

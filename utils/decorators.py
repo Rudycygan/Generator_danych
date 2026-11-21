@@ -1,3 +1,4 @@
+"""Dekoratory funkcji używane w całym projekcie: pomiar czasu i ponawianie prób"""
 import functools
 import time
 from collections.abc import Callable

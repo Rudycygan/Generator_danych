@@ -1,4 +1,4 @@
-# dane, z których losowane są fikcyjne osoby.
+"""Dane, z których losowane są fikcyjne osoby: imiona, nazwiska i domeny e-mail."""
 
 FIRST_NAMES = {
     "K": (

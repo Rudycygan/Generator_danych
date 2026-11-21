@@ -1,3 +1,4 @@
+"""Numer PESEL: odczyt daty urodzenia, cyfra kontrolna, walidacja i generowanie."""
 import random
 from datetime import date
 

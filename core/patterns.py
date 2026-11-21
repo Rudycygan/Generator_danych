@@ -1,3 +1,4 @@
+"""Wyrażenia regularne z grupami nazwanymi oraz walidacja wierszy z danymi osób"""
 import re
 
 from core.pesel import is_valid_pesel
@@ -23,6 +24,7 @@ POSTAL_CODE_PATTERN = re.compile(r"(?P<region>\d{2})-(?P<office>\d{3})", re.ASCI
 
 
 def parse_pesel(pesel: str) -> dict[str, str] | None:
+    """Rozbija PESEL na nazwane części: year, month, day, serial, sex, check"""
     match = PESEL_PATTERN.fullmatch(pesel)
     if match is None:
         return None
@@ -30,6 +32,7 @@ def parse_pesel(pesel: str) -> dict[str, str] | None:
 
 
 def email_domain(email: str) -> str | None:
+    """Zwraca domenę adresu e-mail albo None, gdy adres jest niepoprawny"""
     match = EMAIL_PATTERN.fullmatch(email)
     if match is None:
         return None
@@ -37,6 +40,8 @@ def email_domain(email: str) -> str | None:
 
 
 def validate_row(row: dict[str, str]) -> list[str]:
+    """Sprawdza wiersz danych osoby (np. wczytany z CSV): PESEL, e-mail, telefon, kod.
+       Zwraca listę opisów wszystkich znalezionych błędów"""
     errors = []
     # "or ''" zamienia zarówno brak klucza, jak i None (krótki wiersz CSV) na pusty napis.
     if not is_valid_pesel(row.get("pesel") or ""):

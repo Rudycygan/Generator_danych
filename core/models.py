@@ -1,3 +1,4 @@
+"""Model fikcyjnej osoby (klasa Person) i dekorator metody sprawdzający jej spójność."""
 import functools
 import random
 from collections.abc import Callable
@@ -17,8 +18,7 @@ POLISH_TO_ASCII = str.maketrans("ąćęłńóśźżĄĆĘŁŃÓŚŹŻ", "acelnos
 def requires_consistency(method: Callable) -> Callable:
     """Dekorator metody: przed jej wywołaniem sprawdza spójność obiektu.
     wyrzuca ValueError, gdy PESEL osoby nie zgadza się
-    z jej datą urodzenia albo płcią.
-    """
+    z jej datą urodzenia albo płcią."""
 
     @functools.wraps(method)
     def wrapper(self, *args, **kwargs):
@@ -30,7 +30,7 @@ def requires_consistency(method: Callable) -> Callable:
 
 
 class Person:
-    """Fikcyjna osoba: dane osobowe i kontaktowe."""
+    """Fikcyjna osoba: dane osobowe i kontaktowe"""
 
     # Kolejność kolumn przy zapisie do CSV.
     FIELDS = (
@@ -49,6 +49,7 @@ class Person:
         phone: str,
         postal_code: str,
     ) -> None:
+        """Tworzy osobę; rzuca ValueError przy nieznanej płci albo niepoprawnym PESEL-u."""
         if sex not in SEX_DIGITS:
             raise ValueError(f"Nieznana płeć: {sex!r}, oczekiwano 'K' lub 'M'")
         self.first_name = first_name
@@ -67,6 +68,7 @@ class Person:
 
     @pesel.setter
     def pesel(self, value: str) -> None:
+        """Ustawia PESEL po sprawdzeniu poprawności; rzuca ValueError dla złego numeru"""
         if not is_valid_pesel(value):
             raise ValueError(f"Niepoprawny PESEL: {value!r}")
         self._pesel = value

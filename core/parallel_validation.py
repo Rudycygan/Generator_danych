@@ -1,3 +1,4 @@
+"""Walidacja wielu numerów PESEL na trzy sposoby: sekwencyjnie, w wątkach i w procesach."""
 import random
 from collections.abc import Iterator
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
@@ -5,11 +6,13 @@ from datetime import date, timedelta
 
 from core.pesel import generate_pesel, is_valid_pesel
 
+# Zakres dat urodzenia dla losowanych numerów.
 FIRST_DAY = date(1900, 1, 1)
 DAYS_RANGE = (date(2099, 12, 31) - FIRST_DAY).days
 
 
 def random_pesels(count: int, invalid_ratio: float = 0.1) -> Iterator[str]:
+    """Generuje `count` numerów PESEL; około `invalid_ratio` z nich ma celowo złą cyfrę kontrolną"""
     for _ in range(count):
         birth_date = FIRST_DAY + timedelta(days=random.randint(0, DAYS_RANGE))
         pesel = generate_pesel(birth_date, random.choice("KM"))
@@ -20,6 +23,7 @@ def random_pesels(count: int, invalid_ratio: float = 0.1) -> Iterator[str]:
 
 
 def split_into_chunks(items: list[str], parts: int) -> list[list[str]]:
+    """Dzieli listę na najwyżej `parts` kawałków podobnej wielkości"""
     if parts < 1:
         raise ValueError("parts musi wynosić co najmniej 1")
     size = max(1, -(-len(items) // parts))  # dzielenie z zaokrągleniem w górę
@@ -27,19 +31,23 @@ def split_into_chunks(items: list[str], parts: int) -> list[list[str]]:
 
 
 def count_valid(pesels: list[str]) -> int:
+    """Liczy poprawne numery PESEL w liście"""
     return sum(1 for pesel in pesels if is_valid_pesel(pesel))
 
 
 def count_valid_sequential(pesels: list[str]) -> int:
+    """Wersja sekwencyjna: jeden wątek, jeden proces"""
     return count_valid(pesels)
 
 
 def count_valid_threads(pesels: list[str], workers: int = 4) -> int:
+    """Wersja z pulą wątków. Przez GIL nie przyspiesza obliczeń w czystym Pythonie"""
     with ThreadPoolExecutor(max_workers=workers) as executor:
         return sum(executor.map(count_valid, split_into_chunks(pesels, workers)))
 
 
 def count_valid_processes(pesels: list[str], workers: int = 4) -> int:
+    """Wersja z pulą procesów. Każdy proces ma własny interpreter i własny GIL"""
     with ProcessPoolExecutor(max_workers=workers) as executor:
         return sum(executor.map(count_valid, split_into_chunks(pesels, workers)))
 
