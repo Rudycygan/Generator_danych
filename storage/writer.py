@@ -47,7 +47,7 @@ def write_batches_parallel(
             path = output_dir / f"osoby_{index:03d}.csv"
             try:
                 write_csv(path, rows)
-            except OSError as error:
+            except (OSError, ValueError) as error:  # ValueError: zły klucz w wierszu
                 with lock:
                     errors.append(f"{path}: {error}")
             else:

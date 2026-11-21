@@ -38,12 +38,13 @@ def email_domain(email: str) -> str | None:
 
 def validate_row(row: dict[str, str]) -> list[str]:
     errors = []
-    if not is_valid_pesel(row.get("pesel", "")):
+    # "or ''" zamienia zarówno brak klucza, jak i None (krótki wiersz CSV) na pusty napis.
+    if not is_valid_pesel(row.get("pesel") or ""):
         errors.append(f"niepoprawny PESEL: {row.get('pesel')!r}")
-    if EMAIL_PATTERN.fullmatch(row.get("email", "")) is None:
+    if EMAIL_PATTERN.fullmatch(row.get("email") or "") is None:
         errors.append(f"niepoprawny e-mail: {row.get('email')!r}")
-    if PHONE_PATTERN.fullmatch(row.get("phone", "")) is None:
+    if PHONE_PATTERN.fullmatch(row.get("phone") or "") is None:
         errors.append(f"niepoprawny telefon: {row.get('phone')!r}")
-    if POSTAL_CODE_PATTERN.fullmatch(row.get("postal_code", "")) is None:
+    if POSTAL_CODE_PATTERN.fullmatch(row.get("postal_code") or "") is None:
         errors.append(f"niepoprawny kod pocztowy: {row.get('postal_code')!r}")
     return errors
